@@ -26,16 +26,22 @@ class VariableTypeWidget : CustomStatusBarWidget {
     private var caretListener: CaretListener? = null
     private var disposable: Disposable? = null
 
+    private var lastShownRange: IntRange? = null
+
     override fun ID(): String = "VariableTypeViewer"
 
     override fun install(statusBar: StatusBar) {
         val listener = object : CaretListener {
             private fun shouldIgnoreElement(element: PsiElement): Boolean {
                 val tokenType = element.node.elementType.toString()
+                val text = element.text
+                val isSymbol = text.all { !it.isLetterOrDigit() && it != '_' } && text.length <= 3
+
                 return element is PsiComment ||
                         element is PsiWhiteSpace ||
-                        element.text.isBlank() ||
-                        tokenType.endsWith("KEYWORD")
+                        text.isBlank() ||
+                        tokenType.endsWith("KEYWORD") ||
+                        isSymbol
             }
 
             override fun caretPositionChanged(event: CaretEvent) {
@@ -46,6 +52,10 @@ class VariableTypeWidget : CustomStatusBarWidget {
                 val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return
                 val offset = editor.caretModel.offset
                 val element = psiFile.findElementAt(offset) ?: return
+
+                val wordRange = element.textRange.startOffset..element.textRange.endOffset
+                if (lastShownRange != null && wordRange == lastShownRange) return
+                lastShownRange = wordRange
 
                 if (shouldIgnoreElement(element)) {
                     label.text = "Type: —"
@@ -142,6 +152,7 @@ class VariableTypeWidget : CustomStatusBarWidget {
     override fun dispose() {
         caretListener = null
         disposable = null
+        lastShownRange = null
     }
 
     override fun getComponent() = panel
