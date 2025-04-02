@@ -23,8 +23,8 @@ dependencies {
         intellijIdeaCommunity("2024.3.1")
     }
 
-    compileOnly(files("C:/Projects/JetBrains/python-ce/lib/python-ce.jar"))
-    compileOnly(files("C:/Projects/JetBrains/python-ce/lib/python-common.jar"))
+    compileOnly(files("libs/python-ce.jar"))
+    compileOnly(files("libs/python-common.jar"))
 }
 
 tasks {
